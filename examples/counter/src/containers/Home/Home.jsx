@@ -16,6 +16,7 @@ class Home extends Component {
         <button onClick={() => model.updateCount(this.props.count - 1)}>Minus</button>
         {this.props.count}
         <button onClick={() => model.updateCount(this.props.count + 1)}>Add</button>
+        <button onClick={() => model.updateCountAsync(this.props.count + 1)}>Add(async)</button>
       </div>
     )
   }

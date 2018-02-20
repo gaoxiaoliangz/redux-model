@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { combineReducers } from 'redux'
 import { connect } from 'react-redux'
+import { put, fork, takeEvery } from 'redux-saga/effects'
 
 export const feedStore = (store, models) => {
   models.forEach(model => {
@@ -8,13 +9,22 @@ export const feedStore = (store, models) => {
   })
 }
 
-export const extractReducers = (...models) => {
+export const extractReducer = models => {
   return combineReducers(models.reduce((obj, model) => {
     return {
       ...obj,
       [model.namespace]: model.reducer
     }
   }, {}))
+}
+
+export const extractSaga = models => {
+  return function* () {
+    yield models
+      .map(model => model.saga)
+      .filter(Boolean)
+      .map(saga => fork(saga))
+  }
 }
 
 const generateActionCreator = type => (payload, meta) => {
@@ -27,7 +37,16 @@ const generateActionCreator = type => (payload, meta) => {
 }
 
 class Model {
-  constructor({ namespace, state, computations, effects, actionCreators, reducer } = {}) {
+  constructor({
+    namespace,
+    state,
+    actionCreators,
+    reducer,
+    computations,
+    saga,
+    effects,
+  } = {}) {
+    const self = this
     this.namespace = namespace
     this.initialState = state
 
@@ -66,6 +85,31 @@ class Model {
         return computations[type](state1, action.payload, action.meta, action.error)
       }
       return state1
+    }
+
+    // saga
+    if (saga || effects) {
+      this.saga = function* () {
+        yield [
+          ...saga ? [fork(saga.bind(self))] : [],
+          ...effects
+            ? _.map(effects, (generator, key) => {
+              return fork(this._effectToSaga(key, generator.bind(self)))
+            })
+            : []
+        ]
+      }.bind(this)
+    }
+  }
+
+  _effectToSaga(key, generator) {
+    const type = this._prefixType(key)
+    return function* () {
+      yield takeEvery(type, function* (action) {
+        yield put({ type: type + '@start' })
+        yield generator(action.payload, action.meta, action.error)
+        yield put({ type: type + '@end' })
+      })
     }
   }
 

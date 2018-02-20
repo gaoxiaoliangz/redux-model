@@ -1,8 +1,12 @@
 import { createStore, applyMiddleware, compose, combineReducers } from 'redux'
-import { extractReducers, feedStore } from 'redux-model'
+import { extractReducer, feedStore, extractSaga } from 'redux-model'
+import createSagaMiddleware from 'redux-saga'
+import { fork } from 'redux-saga/effects'
 import homeModel from './containers/Home/homeModel'
 
-const middlewares = []
+const models = [homeModel]
+const sagaMiddleware = createSagaMiddleware()
+const middlewares = [sagaMiddleware]
 const enhancers = [
   applyMiddleware(...middlewares)
 ]
@@ -10,9 +14,12 @@ if (process.env.NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__
   enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__(window.__REDUX_DEVTOOLS_EXTENSION__OPTIONS))
 }
 
-const reducer = extractReducers(homeModel)
+const reducer = extractReducer(models)
+const saga = extractSaga(models)
 const store = createStore(reducer, {}, compose(...enhancers))
 
 feedStore(store, [homeModel])
+
+sagaMiddleware.run(saga)
 
 export default store 
