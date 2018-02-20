@@ -3,7 +3,7 @@ import { createModel } from 'redux-model'
 export default createModel({
   namespace: 'home',
   state: {
-    init: 'none'
+    count: 0
   },
   actionCreators: {
     test: () => ({ payload: 'ok', meta: 'test' })
@@ -15,17 +15,11 @@ export default createModel({
   // effects: {
   // },
   computations: {
-    init(state, payload = 'yes') {
+    updateCount(state, count) {
       return {
         ...state,
-        init: payload,
+        count
       }
     },
-    sayyes(state, payload = 'hahah') {
-      return {
-        ...state,
-        yes: payload
-      }
-    }
   }
 })

@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { combineReducers } from 'redux'
+import { connect } from 'react-redux'
 
 export const feedStore = (store, models) => {
   models.forEach(model => {
@@ -105,6 +106,10 @@ class Model {
       return this._bindDispatch(actionCreator)
     })
     _.assign(this, bindedActions)
+  }
+
+  connect(component, mapStateToProps, mapDispatch) {
+    return connect(mapStateToProps = (state => state[this.namespace]), mapDispatch)(component)
   }
 }
 

@@ -1,27 +1,24 @@
 import React, { Component } from 'react'
 // import PT from 'prop-types'
 import model from './homeModel'
-import { connect } from 'react-redux'
-
-console.log(model)
 
 class Home extends Component {
   static propTypes = {
   }
 
   componentDidMount() {
-    model.init()
-    model.sayyes()
-    model.test()
+    model.updateCount(10)
   }
 
   render() {
     return (
       <div>
-        {this.props.state.home.init}
+        <button onClick={() => model.updateCount(this.props.count - 1)}>Minus</button>
+        {this.props.count}
+        <button onClick={() => model.updateCount(this.props.count + 1)}>Add</button>
       </div>
     )
   }
 }
 
-export default connect(state => ({ state }))(Home)
+export default model.connect(Home)
