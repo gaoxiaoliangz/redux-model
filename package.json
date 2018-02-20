@@ -1,6 +1,21 @@
 {
   "name": "redux-model",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "dist/redux-model.js",
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "webpack --config webpack.config.js"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-lodash": "^3.3.2",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "jellyweb": "^0.5.0"
+  }
 }
