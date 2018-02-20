@@ -1,18 +1,27 @@
 import React, { Component } from 'react'
 // import PT from 'prop-types'
-import homeModel from './homeModel'
+import model from './homeModel'
+import { connect } from 'react-redux'
 
-console.log(homeModel)
+console.log(model)
 
 class Home extends Component {
   static propTypes = {
   }
 
+  componentDidMount() {
+    model.init()
+    model.sayyes()
+    model.test()
+  }
+
   render() {
     return (
-      <div>Home</div>
+      <div>
+        {this.props.state.home.init}
+      </div>
     )
   }
 }
 
-export default Home
+export default connect(state => ({ state }))(Home)

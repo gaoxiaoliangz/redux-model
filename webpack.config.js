@@ -3,7 +3,8 @@ const { configWebpack, resolveProject } = require('jellyweb')
 module.exports = configWebpack({
   features: [
     'babel',
-    'define'
+    'define',
+    'exclude-externals'
   ],
   production: true,
   presets: [
