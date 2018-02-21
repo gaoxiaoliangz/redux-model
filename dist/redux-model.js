@@ -302,6 +302,10 @@ var Model = function () {
         return _this4._bindDispatch(actionCreator);
       });
       (0, _assign3.default)(this, bindedActions);
+      this._store = store;
+    },
+    get: function get() {
+      return this._store;
     }
   }]);
 

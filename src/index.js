@@ -150,6 +150,11 @@ class Model {
       return this._bindDispatch(actionCreator)
     })
     _.assign(this, bindedActions)
+    this._store = store
+  }
+
+  get store() {
+    return this._store
   }
 
   connect(component, mapStateToProps, mapDispatch) {
