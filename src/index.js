@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { combineReducers } from 'redux'
 import { connect } from 'react-redux'
-import { put, fork, takeEvery } from 'redux-saga/effects'
+import { put, fork, select, takeEvery } from 'redux-saga/effects'
 import { generateActionCreator, generateSetActionCreator, updateInObject } from './utils'
 
 export const feedStore = (store, models) => {
@@ -36,11 +36,16 @@ class Model {
     reducer,
     computations,
     saga,
-    effects,
+    effects: effects0,
   } = {}) {
     const self = this
     this.namespace = namespace
     this.initialState = state
+
+    const effects = {
+      ...effects0,
+      $watch: this._builtInEffects.watch
+    }
 
     // get types
     // todo: reserved types
@@ -90,7 +95,7 @@ class Model {
           ...saga ? [fork(saga.bind(self))] : [],
           ...effects
             ? _.map(effects, (generator, key) => {
-              return fork(this._effectToSaga(key, generator.bind(self)))
+              return fork(this._effectToSaga(key, generator))
             })
             : []
         ]
@@ -106,12 +111,34 @@ class Model {
     return state
   }
 
+  _builtInEffects = {
+    watch: function*({ path, handler }) {
+      let lastState = {}
+      yield takeEvery('*', function* handleTakeEvery() {
+        const currState = yield select()
+        const selfState = currState[this.namespace]
+        const lastVal = _.get(lastState, path)
+        const currVal = _.get(selfState, path)
+        if (!_.isEqual(lastVal, currVal)) {
+          handler({
+            value: currVal,
+            prevValue: lastVal,
+            state: currState
+          })
+        }
+        lastState = selfState
+        yield
+      }.bind(this))
+    }
+  }
+
   _effectToSaga(key, generator) {
+    const self = this
     const type = this._prefixType(key)
     return function* () {
       yield takeEvery(type, function* (action) {
         yield put({ type: type + '@start' })
-        yield generator(action.payload, action.meta, action.error)
+        yield generator.bind(self).call(null, action.payload, action.meta, action.error)
         yield put({ type: type + '@end' })
       })
     }
