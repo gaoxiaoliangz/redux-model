@@ -8,6 +8,7 @@ class Home extends Component {
 
   componentDidMount() {
     model.updateCount(10)
+    model.$set('count', 2)
   }
 
   render() {

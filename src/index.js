@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { combineReducers } from 'redux'
 import { connect } from 'react-redux'
 import { put, fork, takeEvery } from 'redux-saga/effects'
+import { generateActionCreator, generateSetActionCreator, updateInObject } from './utils'
 
 export const feedStore = (store, models) => {
   models.forEach(model => {
@@ -27,15 +28,6 @@ export const extractSaga = models => {
   }
 }
 
-const generateActionCreator = type => (payload, meta) => {
-  return {
-    type,
-    payload,
-    meta,
-    error: payload instanceof Error ? true : undefined
-  }
-}
-
 class Model {
   constructor({
     namespace,
@@ -51,6 +43,7 @@ class Model {
     this.initialState = state
 
     // get types
+    // todo: reserved types
     const types = _.keys(computations)
     _.keys(effects)
       .concat(_.keys(actionCreators))
@@ -72,14 +65,17 @@ class Model {
     }, {})
     this._actionCreators = {
       ...generatedActionCreators,
-      ...this._mapCreatorTypes(actionCreators)
+      ...this._mapCreatorTypes(actionCreators),
+      $set: generateSetActionCreator(this.namespace, state)
     }
 
     // generate reducer
     this.reducer = (state = this.initialState, action) => {
+      // todo: compose
+      const state0 = this._builtInReducer(state, action)
       const state1 = reducer
-        ? reducer(state, action)
-        : state
+        ? reducer(state0, action)
+        : state0
       const type = this._unprefixType(action.type)
       if (computations[type]) {
         return computations[type](state1, action.payload, action.meta, action.error)
@@ -100,6 +96,14 @@ class Model {
         ]
       }.bind(this)
     }
+  }
+
+  _builtInReducer = (state, action) => {
+    const { payload, type } = action
+    if (type.startsWith(`${this.namespace}/set:`)) {
+      return updateInObject(state, payload.path, payload.value)
+    }
+    return state
   }
 
   _effectToSaga(key, generator) {
