@@ -30,6 +30,11 @@ export default createModel({
   //     })
   //   })
   // },
+  watch: {
+    count(val) {
+      console.log(val)
+    }
+  },
   effects: {
     *updateCountAsync(count) {
       const num = yield service.updateCount(count)

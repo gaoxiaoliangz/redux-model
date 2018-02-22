@@ -37,6 +37,7 @@ class Model {
     computations,
     saga,
     effects: effects0,
+    watch
   } = {}) {
     const self = this
     this.namespace = namespace
@@ -82,7 +83,7 @@ class Model {
         ? reducer(state0, action)
         : state0
       const type = this._unprefixType(action.type)
-      if (computations[type]) {
+      if (computations && computations[type]) {
         return computations[type](state1, action.payload, action.meta, action.error)
       }
       return state1
@@ -101,18 +102,31 @@ class Model {
         ]
       }.bind(this)
     }
+
+    this._watch = watch
   }
 
   _builtInReducer = (state, action) => {
     const { payload, type } = action
-    if (type.startsWith(`${this.namespace}/set:`)) {
+    if (type.startsWith(`${this.namespace}/$set:`)) {
       return updateInObject(state, payload.path, payload.value)
     }
     return state
   }
 
+  _registerWatch() {
+    if (this._watch) {
+      _.forEach(this._watch, (handler, key) => {
+        this.$watch({
+          path: key,
+          handler: handler.bind(this)
+        })
+      })
+    }
+  }
+
   _builtInEffects = {
-    watch: function*({ path, handler }) {
+    watch: function* ({ path, handler }) {
       let lastState = {}
       yield takeEvery('*', function* handleTakeEvery() {
         const currState = yield select()
@@ -182,6 +196,7 @@ class Model {
     })
     _.assign(this, bindedActions)
     this._store = store
+    this._registerWatch()
   }
 
   get store() {

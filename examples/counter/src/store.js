@@ -18,8 +18,7 @@ const reducer = extractReducer(models)
 const saga = extractSaga(models)
 const store = createStore(reducer, {}, compose(...enhancers))
 
-feedStore(store, [homeModel])
-
 sagaMiddleware.run(saga)
+feedStore(store, [homeModel])
 
 export default store 

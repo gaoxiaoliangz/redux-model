@@ -48,7 +48,7 @@ export const generateSetActionCreator = (namesapce, initialState) => {
       }
     }
     return {
-      type: namesapce + '/set:' + firstPath,
+      type: namesapce + '/$set:' + firstPath,
       payload: {
         path: pathArr,
         value
