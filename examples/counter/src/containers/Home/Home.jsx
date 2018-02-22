@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 // import PT from 'prop-types'
 import model from './homeModel'
 
+console.log(model)
+
 class Home extends Component {
   static propTypes = {
   }
