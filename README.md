@@ -4,6 +4,10 @@
 
 Using redux involves writing too many lines of boilerplate code, and it annoys me. So I decided to make things easy, and in the mean time respecting all the core concepts of redux.
 
+## Install
+
+`npm install @gxl/redux-model` or `yarn add @gxl/redux-model`
+
 ## How to use
 
 Let's start by this simple example.
