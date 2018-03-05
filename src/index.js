@@ -203,8 +203,8 @@ class Model {
     return this._store
   }
 
-  connect(component, mapStateToProps, mapDispatch) {
-    return connect(mapStateToProps = (state => state[this.namespace]), mapDispatch)(component)
+  connect(component, mapStateToProps = (state => state[this.namespace]), mapDispatch) {
+    return connect(mapStateToProps, mapDispatch)(component)
   }
 }
 
