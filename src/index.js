@@ -52,7 +52,6 @@ const formatType = type => _.upperCase(type).split(' ').join('_')
 
 const RESERVED_TYPES = ['watch', 'set']
 
-// built-in methods: set, watch
 class Model {
   constructor({
     namespace,
@@ -97,7 +96,8 @@ class Model {
           [formatType(type) + '_START']: namespacedType + '@START',
           [formatType(type) + '_END']: namespacedType + '@END',
         }
-      }, {})
+      }, {}),
+      SET: this._prefixType('set')
     }
 
     // generate action creators
@@ -155,17 +155,15 @@ class Model {
     })
     const set = Array.from(new Set(types))
     if (set.length !== types.length) {
-      console.log(set, types)
       const diff = diffArr(set, types).join(' ')
-      console.log(diff)
       console.error(`You have duplicated names: ${diff}!`)
     }
   }
 
   _builtInReducer = (state, action) => {
-    const { payload, type } = action
-    if (type.startsWith(`${this.namespace}/$set:`)) {
-      return updateInObject(state, payload.path, payload.value)
+    const { payload, type, meta } = action
+    if (this.actionTypes.SET === type) {
+      return updateInObject(state, meta, payload)
     }
     return state
   }

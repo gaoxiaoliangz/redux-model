@@ -47,11 +47,9 @@ export const generateSetActionCreator = (namespace, initialState) => {
       }
     }
     return {
-      type: namespace + '/$set:' + firstPath,
-      payload: {
-        path: pathArr,
-        value
-      },
+      type: namespace.toUpperCase() + '/SET',
+      payload: value,
+      meta: pathArr
     }
   }
 }

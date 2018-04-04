@@ -14,7 +14,7 @@ class Home extends Component {
       }
     })
     model.updateCount(10)
-    model.$set('count', 2)
+    model.$set('count', 6)
   }
 
   render() {

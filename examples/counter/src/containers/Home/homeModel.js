@@ -64,5 +64,5 @@ const model = createModel({
 
 const { updateCount, wait } = model.actionCreators
 const { WAIT_END } = model.actionTypes
-
+console.log(model)
 export default model
