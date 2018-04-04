@@ -1,26 +1,25 @@
 import { createModel } from 'redux-model'
-import { call, put, takeEvery, takeLatest } from 'redux-saga/effects'
+import { put, take, select } from 'redux-saga/effects'
 
 const service = {
-  updateCount(num) {
+  updateCount(num, t = 1000) {
     return new Promise(resolve => {
       setTimeout(() => {
         resolve(num)
-      }, 1000)
+      }, t)
     })
   }
 }
 
-export default createModel({
+const model = createModel({
   namespace: 'home',
   state: {
-    count: 0
+    count: 0,
   },
   // actionCreators: {
   //   test: () => ({ payload: 'ok', meta: 'test' })
   // },
   // reducer(state, action) {
-  //   // console.log(action)
   //   return state
   // },
   // *saga() {
@@ -32,13 +31,25 @@ export default createModel({
   // },
   watch: {
     count(val) {
-      console.log(val)
+      console.log('count is being watched:', val)
     }
   },
   effects: {
-    *updateCountAsync(count) {
-      const num = yield service.updateCount(count)
-      this.updateCount(num)
+    *updateCountAsync() {
+      yield service.updateCount()
+      yield put(wait())
+      yield take(WAIT_END)
+      const { home: { count } } = yield select()
+      yield put(updateCount(count + 1))
+    },
+    *updateCountAsyncQuick() {
+      yield service.updateCount(null, 100)
+      const { home: { count } } = yield select()
+      yield put(updateCount(count + 1))
+    },
+    *wait(m) {
+      yield service.updateCount()
+      yield
     }
   },
   computations: {
@@ -50,3 +61,8 @@ export default createModel({
     },
   }
 })
+
+const { updateCount, wait } = model.actionCreators
+const { WAIT_END } = model.actionTypes
+
+export default model

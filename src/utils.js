@@ -35,12 +35,12 @@ export const generateActionCreator = type => (payload, meta) => {
   }
 }
 
-export const generateSetActionCreator = (namesapce, initialState) => {
+export const generateSetActionCreator = (namespace, initialState) => {
   return (path, value) => {
     const pathArr = Array.isArray(path) ? path : parsePath(path)
     const firstPath = pathArr[0]
     if (_.isUndefined(initialState[firstPath])) {
-      const msg = `key: ${firstPath} does not exist in ${namesapce} state`
+      const msg = `key: ${firstPath} does not exist in ${namespace} state`
       console.error(msg)
       return {
         type: 'app/error',
@@ -48,7 +48,7 @@ export const generateSetActionCreator = (namesapce, initialState) => {
       }
     }
     return {
-      type: namesapce + '/$set:' + firstPath,
+      type: namespace + '/$set:' + firstPath,
       payload: {
         path: pathArr,
         value

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { combineReducers } from 'redux'
 import { connect } from 'react-redux'
-import { put, fork, select, takeEvery } from 'redux-saga/effects'
+import { put, fork, select, takeEvery, all } from 'redux-saga/effects'
 import { generateActionCreator, generateSetActionCreator, updateInObject } from './utils'
 
 export const feedStore = (store, models) => {
@@ -21,13 +21,16 @@ export const extractReducer = models => {
 
 export const extractSaga = models => {
   return function* () {
-    yield models
+    yield all(models
       .map(model => model.saga)
       .filter(Boolean)
-      .map(saga => fork(saga))
+      .map(saga => fork(saga)))
   }
 }
 
+const formatType = type => _.upperCase(type).split(' ').join('_')
+
+// built-in methods: set, watch
 class Model {
   constructor({
     namespace,
@@ -50,17 +53,39 @@ class Model {
 
     // get types
     // todo: reserved types
-    const types = _.keys(computations)
-    _.keys(effects)
-      .concat(_.keys(actionCreators))
-      .forEach(key => {
-        if (types.includes(key)) {
-          console.warn(`Duplicated key '${key}' found! ('computations', 'effects' and 'actionCreators' should not contain the same key)`)
-        } else {
-          types.push(key)
+    const computationsTypes = _.keys(computations)
+    const effectTypes = _.keys(effects)
+    const actionCreatorTypes = _.keys(actionCreators)
+    const types = [...computationsTypes, ...effectTypes, ...actionCreatorTypes]
+    
+    // TODO: check dup keys
+    // .concat(_.keys(actionCreators))
+    // .forEach(key => {
+    //   if (types.includes(key)) {
+    //     console.warn(`Duplicated key '${key}' found! ('computations', 'effects' and 'actionCreators' should not contain the same key)`)
+    //   } else {
+    //     types.push(key)
+    //   }
+    // })
+
+    this.actionTypes = [...computationsTypes, ...actionCreatorTypes].reduce((obj, type) => {
+      return {
+        ...obj,
+        [formatType(type)]: this._prefixType(type)
+      }
+    }, {})
+    this.actionTypes = {
+      ...this.actionTypes,
+      ...effectTypes.reduce((obj, type) => {
+        const namespacedType = this._prefixType(type)
+        return {
+          ...obj,
+          [formatType(type)]: namespacedType,
+          [formatType(type) + '_START']: namespacedType + '@START',
+          [formatType(type) + '_END']: namespacedType + '@END',
         }
-      })
-    this.actionTypes = types
+      }, {})
+    }
 
     // generate action creators
     const generatedActionCreators = types.reduce((creators, type) => {
@@ -69,7 +94,7 @@ class Model {
         [type]: this._generateActionCreator(type)
       }
     }, {})
-    this._actionCreators = {
+    this.actionCreators = {
       ...generatedActionCreators,
       ...this._mapCreatorTypes(actionCreators),
       $set: generateSetActionCreator(this.namespace, state)
@@ -92,14 +117,14 @@ class Model {
     // saga
     if (saga || effects) {
       this.saga = function* () {
-        yield [
+        yield all([
           ...saga ? [fork(saga.bind(self))] : [],
           ...effects
             ? _.map(effects, (generator, key) => {
               return fork(this._effectToSaga(key, generator))
             })
             : []
-        ]
+        ])
       }.bind(this)
     }
 
@@ -151,9 +176,9 @@ class Model {
     const type = this._prefixType(key)
     return function* () {
       yield takeEvery(type, function* (action) {
-        yield put({ type: type + '@start' })
+        yield put({ type: type + '@START' })
         yield generator.bind(self).call(null, action.payload, action.meta, action.error)
-        yield put({ type: type + '@end' })
+        yield put({ type: type + '@END' })
       })
     }
   }
@@ -161,18 +186,21 @@ class Model {
   _generateActionCreator = type => generateActionCreator(this._prefixType(type))
 
   _unprefixType = type => {
-    const typePrefix = this.namespace + '/'
+    const typePrefix = formatType(this.namespace) + '/'
+    let output
     if (type.startsWith(typePrefix)) {
-      return type.substr(typePrefix.length)
+      output = type.substr(typePrefix.length)
+    } else {
+      output = type
     }
-    return type
+    return _.camelCase(output)
   }
 
   _prefixType = type => {
     if (!this.namespace) {
-      return type
+      return formatType(type)
     }
-    return `${this.namespace}/${type}`
+    return `${formatType(this.namespace)}/${formatType(type)}`
   }
 
   _mapCreatorTypes = actionCreators => {
@@ -191,10 +219,10 @@ class Model {
 
   set store(store) {
     this.dispatch = store.dispatch
-    const bindedActions = _.mapValues(this._actionCreators, actionCreator => {
+    const boundActions = _.mapValues(this.actionCreators, actionCreator => {
       return this._bindDispatch(actionCreator)
     })
-    _.assign(this, bindedActions)
+    _.assign(this, boundActions)
     this._store = store
     this._registerWatch()
   }

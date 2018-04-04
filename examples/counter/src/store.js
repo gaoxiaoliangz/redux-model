@@ -1,7 +1,6 @@
-import { createStore, applyMiddleware, compose, combineReducers } from 'redux'
+import { createStore, applyMiddleware, compose } from 'redux'
 import { extractReducer, feedStore, extractSaga } from 'redux-model'
 import createSagaMiddleware from 'redux-saga'
-import { fork } from 'redux-saga/effects'
 import homeModel from './containers/Home/homeModel'
 
 const models = [homeModel]
