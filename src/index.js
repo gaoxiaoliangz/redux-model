@@ -71,6 +71,7 @@ class Model {
       ...effects0,
       $watch: this._builtInEffects.watch
     }
+    this.effects = effects
 
     const computationsTypes = _.keys(computations)
     const effectTypes = _.keys(effects)
