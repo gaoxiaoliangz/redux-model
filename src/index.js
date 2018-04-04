@@ -171,16 +171,13 @@ class Model {
   _registerWatch() {
     if (this._watch) {
       _.forEach(this._watch, (handler, key) => {
-        this.$watch({
-          path: key,
-          handler: handler.bind(this)
-        })
+        this.$watch(key, handler.bind(this))
       })
     }
   }
 
   _builtInEffects = {
-    watch: function* ({ path, handler }) {
+    watch: function* (path, handler) {
       let lastState = {}
       yield takeEvery('*', function* handleTakeEvery() {
         const currState = yield select()

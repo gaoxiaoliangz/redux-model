@@ -7,11 +7,8 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    model.$watch({
-      path: 'count',
-      handler: val => {
-        console.log('watch through model.watch', val)
-      }
+    model.$watch('count', val => {
+      console.log('watch through model.watch', val)
     })
     model.updateCount(10)
     model.$set('count', 6)
