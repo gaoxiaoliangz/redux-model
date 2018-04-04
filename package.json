@@ -1,12 +1,13 @@
 {
   "name": "@gxl/redux-model",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "main": "dist/redux-model.js",
   "scripts": {
+    "jellyweb": "jellyweb",
     "prebuild": "rm -rf dist",
-    "build": "webpack --config webpack.config.prod.js",
-    "build:dev": "webpack --config webpack.config.dev.js"
+    "build": "jellyweb",
+    "build:dev": "jellyweb --config jellyweb.config.dev.js"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
@@ -24,7 +25,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.0.1",
-    "jellyweb": "^0.5.0"
+    "jellyweb": "^0.6.2"
   },
   "repository": {
     "type": "git",
