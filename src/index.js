@@ -4,6 +4,26 @@ import { connect } from 'react-redux'
 import { put, fork, select, takeEvery, all } from 'redux-saga/effects'
 import { generateActionCreator, generateSetActionCreator, updateInObject } from './utils'
 
+const diffArr = (arr1, arr2) => {
+  const diff = []
+  const matched = []
+  for (const item1 of arr1) {
+    if (!arr2.includes(item1)) {
+      diff.push(item1)
+    } else {
+      matched.push(arr2.indexOf(item1))
+    }
+  }
+  if (matched.length !== arr2.length) {
+    arr2.forEach((item, index) => {
+      if (!matched.includes(index)) {
+        diff.push(item)
+      }
+    })
+  }
+  return diff
+}
+
 export const feedStore = (store, models) => {
   models.forEach(model => {
     model.store = store
@@ -30,6 +50,8 @@ export const extractSaga = models => {
 
 const formatType = type => _.upperCase(type).split(' ').join('_')
 
+const RESERVED_TYPES = ['watch', 'set']
+
 // built-in methods: set, watch
 class Model {
   constructor({
@@ -51,22 +73,12 @@ class Model {
       $watch: this._builtInEffects.watch
     }
 
-    // get types
-    // todo: reserved types
     const computationsTypes = _.keys(computations)
     const effectTypes = _.keys(effects)
     const actionCreatorTypes = _.keys(actionCreators)
     const types = [...computationsTypes, ...effectTypes, ...actionCreatorTypes]
-    
-    // TODO: check dup keys
-    // .concat(_.keys(actionCreators))
-    // .forEach(key => {
-    //   if (types.includes(key)) {
-    //     console.warn(`Duplicated key '${key}' found! ('computations', 'effects' and 'actionCreators' should not contain the same key)`)
-    //   } else {
-    //     types.push(key)
-    //   }
-    // })
+
+    this._validateTypes(types)
 
     this.actionTypes = [...computationsTypes, ...actionCreatorTypes].reduce((obj, type) => {
       return {
@@ -77,6 +89,7 @@ class Model {
     this.actionTypes = {
       ...this.actionTypes,
       ...effectTypes.reduce((obj, type) => {
+        // _.upperCase 会去除 $
         const namespacedType = this._prefixType(type)
         return {
           ...obj,
@@ -131,6 +144,24 @@ class Model {
     this._watch = watch
   }
 
+  _validateTypes(types) {
+    types.forEach(type => {
+      if (RESERVED_TYPES.includes(type)) {
+        console.error(`${type} is a reserved name!`)
+      }
+      if (type.startsWith('$') && !RESERVED_TYPES.map(type => '$' + type).includes(type)) {
+        console.error(`Computations, effects, actionCreators names cannot start with '$'! Found ${type}`)
+      }
+    })
+    const set = Array.from(new Set(types))
+    if (set.length !== types.length) {
+      console.log(set, types)
+      const diff = diffArr(set, types).join(' ')
+      console.log(diff)
+      console.error(`You have duplicated names: ${diff}!`)
+    }
+  }
+
   _builtInReducer = (state, action) => {
     const { payload, type } = action
     if (type.startsWith(`${this.namespace}/$set:`)) {
@@ -177,7 +208,7 @@ class Model {
     return function* () {
       yield takeEvery(type, function* (action) {
         yield put({ type: type + '@START' })
-        yield generator.bind(self).call(null, action.payload, action.meta, action.error)
+        yield generator.bind(self)(action.payload, action.meta, action.error)
         yield put({ type: type + '@END' })
       })
     }
