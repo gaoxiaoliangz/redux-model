@@ -1,6 +1,6 @@
 {
   "name": "@gxl/redux-model",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "main": "dist/redux-model.js",
   "scripts": {

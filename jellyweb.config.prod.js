@@ -13,6 +13,10 @@ module.exports = {
   features: Object.assign({}, presets.production, {
     babel: true,
     define: {},
-    excludeExternals: {}
+    excludeExternals: {
+      whitelist: [
+        /^lodash/
+      ]
+    }
   })
 }
