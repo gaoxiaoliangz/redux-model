@@ -1,6 +1,7 @@
 {
   "name": "@gxl/redux-model",
-  "version": "0.2.6",
+  "version": "0.2.7",
+  "description": "Using redux without wasting time writing boilerplate code",
   "license": "MIT",
   "main": "dist/redux-model.js",
   "scripts": {
