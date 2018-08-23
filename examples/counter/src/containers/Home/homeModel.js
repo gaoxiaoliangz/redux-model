@@ -1,4 +1,4 @@
-import { createModel } from 'redux-model'
+import { createModel } from '@gxl/redux-model'
 import { put, take, select } from 'redux-saga/effects'
 
 const service = {

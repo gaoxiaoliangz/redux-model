@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux'
-import { extractReducer, feedStore, extractSaga } from 'redux-model'
+import { extractReducer, feedStore, extractSaga } from '@gxl/redux-model'
 import createSagaMiddleware from 'redux-saga'
 import homeModel from './containers/Home/homeModel'
 
